@@ -11,7 +11,7 @@ for (const blob of blobs) {
     img.src = `/api/images/${encodedBlobPath}`;
     img.alt = blob.name;
     img.loading = "lazy";
-    caption.textContent = blob.name;
+    caption.textContent = blob.name.replace(/^production\//i, "");
 
     figure.append(img, caption);
     gallery?.append(figure);
