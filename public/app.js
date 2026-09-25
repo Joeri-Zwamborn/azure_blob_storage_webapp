@@ -1,4 +1,4 @@
-const gallery = document.querySelector<HTMLDivElement>("#gallery");
+const gallery = document.querySelector("#gallery");
 const response = await fetch("/api/blobs");
 const blobs = await response.json();
 
