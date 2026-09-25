@@ -1,0 +1,29 @@
+{
+  "name": "azure_blob_storage_webapp",
+  "version": "1.0.0",
+  "description": "A simple frontend webapp for viewing .png photos stored on an Azure Blob Storage",
+  "homepage": "https://github.com/Joeri-Zwamborn/azure_blob_storage_webapp#readme",
+  "bugs": {
+    "url": "https://github.com/Joeri-Zwamborn/azure_blob_storage_webapp/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Joeri-Zwamborn/azure_blob_storage_webapp.git"
+  },
+  "license": "UNLICENSED",
+  "author": "Joeri Zwamborn",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "npm run clean && tsc",
+    "start": "npm run build && node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.6",
+    "@types/typescript": "^0.4.29",
+    "express": "^5.2.1",
+    "typescript": "^7.0.2"
+  }
+}
