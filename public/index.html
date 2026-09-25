@@ -3,12 +3,17 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/style.css">
     <title>Production Photos</title>
   </head>
   <body>
+    <header>
+        <img class="logo" src="/images/verano.svg" alt="Verano Logo">
+        <div class="header-text">
+            <p class="eyebrow">Production Photos Archive</p>
+        </div>
+    </header>
     <main>
-      <h1>Production Photos</h1>
-
       <form id="search-form">
         <label for="search">Search images</label>
         <input id="search" name="search" type="search" required autofocus>
@@ -18,7 +23,9 @@
       <p id="message"></p>
       <div id="gallery"></div>
     </main>
-
+    <footer class="site-footer">
+        <p>© 2026 Verano. Internal use only.</p>
+    </footer>
     <script type="module" src="/app.js"></script>
   </body>
 </html>

@@ -54,6 +54,10 @@ app.get("/api/images/*blobPath", async (request, response, next) => {
   }
 });
 
+app.get("/admin", (request, response) => {
+    response.sendFile("admin.html", { root: "public" });
+});
+
 app.listen(3000, () => {
     console.log("Server is running on port 3000");
 });
