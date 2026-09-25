@@ -35,6 +35,18 @@ app.get("/api/blobs", async (request, response, next) => {
     }
 });
 
+app.get("/api/images/:blobName", async (request, response, next) => {
+    try {
+        const blobName = request.params.blobName;
+        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+        const downloadBlockBlobResponse = await blockBlobClient.download(0);
+        response.setHeader("Content-Type", "image/png");
+        downloadBlockBlobResponse.readableStreamBody?.pipe(response);
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.listen(3000, () => {
     console.log("Server is running on port 3000");
 });
