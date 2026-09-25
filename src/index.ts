@@ -1,6 +1,7 @@
 import express from "express";
 import { BlobServiceClient } from "@azure/storage-blob";
 import dotenv from "dotenv";
+import { create } from "node:domain";
 
 dotenv.config();
 
@@ -12,9 +13,9 @@ if (!connectionString || !containerName) {
     console.error("Environment variables for Azure Storage are not set.");
     process.exit(1);
 }
+app.use(express.static("public"));
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
-
 const containerClient = blobServiceClient.getContainerClient(containerName);
 
 app.get("/api/blobs", async (request, response, next) => {
@@ -35,19 +36,25 @@ app.get("/api/blobs", async (request, response, next) => {
     }
 });
 
-app.get("/api/images/:blobName", async (request, response, next) => {
-    try {
-        const blobName = request.params.blobName;
-        const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-        const downloadBlockBlobResponse = await blockBlobClient.download(0);
-        response.setHeader("Content-Type", "image/png");
-        downloadBlockBlobResponse.readableStreamBody?.pipe(response);
-    } catch (error) {
-        next(error);
+app.get("/api/images/*blobPath", async (request, response, next) => {
+  try {
+    const blobName = request.params.blobPath.join("/");
+
+    if (!blobName.toLowerCase().endsWith(".png")) {
+      response.sendStatus(404);
+      return;
     }
+
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    const downloadResponse = await blockBlobClient.download(0);
+
+    response.setHeader("Content-Type", "image/png");
+    downloadResponse.readableStreamBody?.pipe(response);
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.listen(3000, () => {
     console.log("Server is running on port 3000");
 });
-//# sourceMappingURL=index.js.map
