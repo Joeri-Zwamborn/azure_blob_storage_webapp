@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "express": "^5.2.1",
-    "@azure/storage-blob": "^11.19.1",
+    "@azure/storage-blob": "^12.34.0",
     "dotenv": "^16.3.1"
   },
   "devDependencies": {
