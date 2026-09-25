@@ -12,25 +12,34 @@
 
 body {
   margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Source Sans Pro", Arial, Helvetica, sans-serif;
   color: var(--verano-black);
   background: var(--verano-grey);
 }
 
-@font-face {
-  font-family: "Source Sans Pro-bold";
-  src: url("/fonts/SourceSansPro-Bold.ttf2") format("ttf2");
+h1,
+.eyebrow,
+.header-title,
+button,
+#search-form label {
+  font-family: "Source Sans Pro", Arial, sans-serif;
   font-weight: 700;
+}
+
+@font-face {
+  font-family: "Source Sans Pro";
+  src: url("/fonts/SourceSansPro-Regular.ttf") format("truetype");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
-h1,
-.eyebrow,
-button,
-#search-form label {
-  font-family: "Source Sans Pro-bold", Arial, sans-serif;
+@font-face {
+  font-family: "Source Sans Pro";
+  src: url("/fonts/SourceSansPro-Bold.ttf") format("truetype");
   font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 .site-header {
@@ -55,6 +64,15 @@ button,
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: SourceSansPro-Bold;
+}
+
+.header-title {
+  margin: 0;
+  color: var(--verano-black);
+  font-family: "Source Sans Pro", Arial, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 main {

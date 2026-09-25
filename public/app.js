@@ -2,6 +2,44 @@ const form = document.querySelector("#search-form");
 const searchInput = document.querySelector("#search");
 const message = document.querySelector("#message");
 const gallery = document.querySelector("#gallery");
+const historyContainer = document.querySelector("#search-history");
+const searchHistoryKey = "production-photo-search-history";
+
+function getSearchHistory() {
+  return JSON.parse(localStorage.getItem(searchHistoryKey) ?? "[]");
+}
+
+function saveSearch(searchTerm) {
+  const history = getSearchHistory()
+    .filter((item) => item !== searchTerm);
+
+  history.unshift(searchTerm);
+
+  localStorage.setItem(
+    searchHistoryKey,
+    JSON.stringify(history.slice(0, 10)),
+  );
+}
+
+function renderSearchHistory() {
+  const history = getSearchHistory();
+
+  historyContainer.replaceChildren();
+
+  for (const searchTerm of history) {
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.textContent = searchTerm;
+
+    button.addEventListener("click", () => {
+      searchInput.value = searchTerm;
+      form.requestSubmit();
+    });
+
+    historyContainer.append(button);
+  }
+}
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -15,6 +53,8 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
+  saveSearch(searchTerm);
+  renderSearchHistory();
   message.textContent = "Searching...";
 
   const response = await fetch("/api/blobs");
