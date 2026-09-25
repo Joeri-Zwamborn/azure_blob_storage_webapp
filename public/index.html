@@ -3,11 +3,19 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Azure Blob images</title>
+    <title>Production Photos</title>
   </head>
   <body>
     <main>
-      <h1>Azure Blob images</h1>
+      <h1>Production Photos</h1>
+
+      <form id="search-form">
+        <label for="search">Search images</label>
+        <input id="search" name="search" type="search" required autofocus>
+        <button type="submit">Search</button>
+      </form>
+
+      <p id="message"></p>
       <div id="gallery"></div>
     </main>
 
