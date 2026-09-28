@@ -4,6 +4,7 @@ const message = document.querySelector("#message");
 const gallery = document.querySelector("#gallery");
 const historyContainer = document.querySelector("#search-history");
 const searchHistoryKey = "production-photo-search-history";
+const searchHistorySection = document.querySelector("#search-history-section");
 
 function getSearchHistory() {
   return JSON.parse(localStorage.getItem(searchHistoryKey) ?? "[]");
@@ -23,6 +24,8 @@ function saveSearch(searchTerm) {
 
 function renderSearchHistory() {
   const history = getSearchHistory();
+
+  searchHistorySection.hidden = !history.length;
 
   historyContainer.replaceChildren();
 
@@ -54,13 +57,18 @@ form.addEventListener("submit", async (event) => {
   }
 
   saveSearch(searchTerm);
-  renderSearchHistory();
   message.textContent = "Searching...";
 
-  const response = await fetch("/api/blobs");
-  const blobs = await response.json();
+  try {
+    const response = await fetch("/api/blobs");
 
-  const matches = blobs.filter((blob) =>
+    if (!response.ok) {
+      throw new Error(`Search service returned ${response.status}`);
+    }
+
+    const blobs = await response.json();
+
+    const matches = blobs.filter((blob) =>
     blob.name.toLowerCase().includes(searchTerm),
   );
 
@@ -90,4 +98,11 @@ form.addEventListener("submit", async (event) => {
     figure.append(image, caption);
     gallery.append(figure);
   }
+
+  } catch (error) {
+    console.error(error);
+    message.textContent =
+      "Unable to search Azure Storage. Check your network or VPN connection.";
+  }
+  renderSearchHistory();
 });
