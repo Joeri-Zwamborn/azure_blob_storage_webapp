@@ -57,6 +57,7 @@ form.addEventListener("submit", async (event) => {
   }
 
   saveSearch(searchTerm);
+  renderSearchHistory();
   message.textContent = "Searching...";
 
   try {
@@ -104,5 +105,5 @@ form.addEventListener("submit", async (event) => {
     message.textContent =
       "Unable to search Azure Storage. Check your network or VPN connection.";
   }
-  renderSearchHistory();
 });
+renderSearchHistory();
