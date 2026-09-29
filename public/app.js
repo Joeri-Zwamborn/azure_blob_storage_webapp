@@ -51,14 +51,13 @@ form.addEventListener("submit", async (event) => {
 
   gallery.replaceChildren();
 
-  if (!searchTerm) {
-    message.textContent = "Enter a term to search for images.";
-    return;
+  if (searchTerm) {
+    saveSearch(searchTerm);
+    renderSearchHistory();
   }
-
-  saveSearch(searchTerm);
-  renderSearchHistory();
-  message.textContent = "Searching...";
+  message.textContent = searchTerm
+    ? `Searching for "${searchTerm}"...`
+    : "Loading all images...";
 
   try {
     const response = await fetch("/api/blobs");
@@ -69,9 +68,9 @@ form.addEventListener("submit", async (event) => {
 
     const blobs = await response.json();
 
-    const matches = blobs.filter((blob) =>
-    blob.name.toLowerCase().includes(searchTerm),
-  );
+    const matches = searchTerm
+      ? blobs.filter((blob) => blob.name.toLowerCase().includes(searchTerm),)
+      : blobs;
 
   if (matches.length === 0) {
     message.textContent = "No matching images found.";

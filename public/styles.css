@@ -4,6 +4,7 @@
   --verano-grey: #f5f5f3;
   --verano-border: #ddddda;
   --verano-yellow: #EBB100;
+  --verano-darkblue: #6899aa;
 }
 
 * {
@@ -107,7 +108,7 @@ main {
 button {
   padding: 0.9rem 1.5rem;
   border: 0;
-  background: var(--verano-yellow);
+  background: var(--verano-darkblue);
   color: white;
   font: inherit;
   font-weight: 700;
@@ -115,7 +116,7 @@ button {
 }
 
 button:hover {
-  background: #6899aa;
+  background: var(--verano-yellow);
 }
 
 #gallery {

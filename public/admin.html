@@ -1,12 +1,12 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/styles.css">
-    <title>Production Photos</title>
-  </head>
-  <body>
+    <title>Admin - Production Photos</title>
+</head>
+<body>
     <header class="site-header">
         <a href="/" class="logo-link" aria-label="Go to homepage">
             <img class="company-logo" src="/images/verano.svg" alt="Verano logo">
@@ -19,21 +19,20 @@
         </div>
     </header>
     <main>
-      <form id="search-form">
-        <label for="search">Search images</label>
-        <input id="search" name="search" type="search" autofocus>
-        <button type="submit">Search</button>
-      </form>
-      <section id="search-history-section" class="search-history" hidden>
-        <h2>Recent searches</h2>
-        <div id="search-history"></div>
-      </section>
-      <p id="message"></p>
-      <div id="gallery"></div>
+        <h1>Admin Panel</h1>
+        <p>Welcome to the admin panel. Here you can manage the production photos.</p>
+        <section id="camera-scanners">
+            <h2>Camera Scanners</h2>
+            <p>Manage camera scanners and their associated photos.</p>
+        </section>
+        <section id="admin-actions">
+            <h2>Admin Actions</h2>
+            <button id="delete">Delete Photos</button>
+        </section>
     </main>
     <footer class="site-footer">
         <p>© 2026 Verano - For internal use only - Website by Joeri Zwamborn</p>
     </footer>
-    <script type="module" src="/app.js"></script>
-  </body>
+    <script type="module" src="/admin.js"></script>
+</body>
 </html>
