@@ -48,7 +48,7 @@ function renderSearchHistory() {
 
     removeButton.type = "button";
     removeButton.className = "search-history-remove";
-    removeButton.textContent = "×";
+    removeButton.textContent = "x";
     removeButton.setAttribute("aria-label", `Remove ${searchTerm} from recent searches`);
 
     removeButton.addEventListener("click", () => {
