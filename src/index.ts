@@ -283,6 +283,19 @@ app.get("/admin.html", requireAdmin, (request, response) => {
   response.sendFile("admin.html", { root: "public" });
 });
 
+app.get("/api/admin/photo-count", requireAdmin, async (request, response, next) => {
+  try {
+    let count = 0;
+    for await (const blob of containerClient.listBlobsFlat()) {
+      if (blob.name.toLowerCase().endsWith(".png")) {
+        count++;
+      }
+    }
+    response.json({ photoCount: count });
+  } catch (error) {
+    next(error);
+  }
+});
 app.use(express.static("public"));
 
 app.listen(3000, () => {
