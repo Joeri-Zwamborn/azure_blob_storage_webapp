@@ -31,17 +31,40 @@ function renderSearchHistory() {
   historyContainer.replaceChildren();
 
   for (const searchTerm of history) {
-    const button = document.createElement("button");
+    const item = document.createElement("div");
+    const searchButton = document.createElement("button");
+    const removeButton = document.createElement("button");
 
-    button.type = "button";
-    button.textContent = searchTerm;
+    item.className = "search-history-item";
 
-    button.addEventListener("click", () => {
+    searchButton.type = "button";
+    searchButton.className = "search-history-term";
+    searchButton.textContent = searchTerm;
+
+    searchButton.addEventListener("click", () => {
       searchInput.value = searchTerm;
       form.requestSubmit();
     });
 
-    historyContainer.append(button);
+    removeButton.type = "button";
+    removeButton.className = "search-history-remove";
+    removeButton.textContent = "×";
+    removeButton.setAttribute("aria-label", `Remove ${searchTerm} from recent searches`);
+
+    removeButton.addEventListener("click", () => {
+      const updatedHistory = getSearchHistory()
+        .filter((item) => item !== searchTerm);
+
+      localStorage.setItem(
+        searchHistoryKey,
+        JSON.stringify(updatedHistory),
+      );
+
+      renderSearchHistory();
+    });
+
+    item.append(searchButton, removeButton);
+    historyContainer.append(item);
   }
 }
 

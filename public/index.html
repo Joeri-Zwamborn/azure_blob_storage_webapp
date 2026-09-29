@@ -22,14 +22,14 @@
       <form id="search-form">
         <label for="search">Search images</label>
         <input id="search" name="search" type="search" autofocus>
-        <button type="submit">Search</button>
+        <button id="search-button" type="submit">Search</button>
       </form>
       <section id="search-history-section" class="search-history" hidden>
         <div class="search-history-header">
-          <h2>Recent searches</h2>
+          <h2>Recent searches:</h2>
+          <div id="search-history"></div>
           <button id="clear-history" aria-label="Clear search history">Clear</button>
         </div>
-        <div id="search-history"></div>
       </section>
       <p id="message"></p>
       <div id="gallery"></div>

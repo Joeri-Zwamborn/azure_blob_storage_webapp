@@ -5,6 +5,7 @@
   --verano-border: #ddddda;
   --verano-yellow: #EBB100;
   --verano-darkblue: #6899aa;
+  --verano-red: #c62828;
 }
 
 * {
@@ -106,30 +107,76 @@ main {
 }
 
 .search-history {
-  margin-top: 0.5rem;
-  padding: 1.5rem;
+  margin-top: 0;
+  padding: 0;
   background: var(--verano-grey);
+}
+
+#search-history {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-start;
+  margin-right:auto;
+  list-style: none;
+  padding: 0.5rem 1rem;
 }
 
 .search-history-header {
   display: flex;
   justify-content: space-between;
+  gap: 0.5rem;
   align-items: center;
-  margin-bottom: 1rem;
+  margin: 0;
+}
+
+.search-history-header h2 {
+  margin: 0;
+  font-size: 1rem;
 }
 
 #clear-search-history {
   padding: 0.5rem 1rem;
   border: 0;
   background: var(--verano-darkblue);
-  color: red;
+  color: var(--verano-red);
   font: inherit;
   font-weight: 700;
   cursor: pointer;
 }
 
 button {
-  padding: 0.9rem 1.5rem;
+  padding: 0.5rem 1rem;
+  border: 0;
+  background: var(--verano-blue);
+  color:white;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--verano-yellow);
+}
+
+#clear-history:hover {
+  background: var(--verano-red);
+  color: white;
+}
+
+#clear-history {
+  padding: 0.5rem 1rem;
+  border: 0;
+  background: var(--verano-blue);
+  color: white;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#search-button {
+  padding: 0.5rem 1rem;
   border: 0;
   background: var(--verano-darkblue);
   color: white;
@@ -138,8 +185,43 @@ button {
   cursor: pointer;
 }
 
-button:hover {
+#search-button:hover {
   background: var(--verano-yellow);
+}
+
+.search-history-item {
+  position: relative;
+}
+
+.search-history-term {
+  padding: 0.2rem 1.6rem 0.4rem 0.75rem;
+  background: var(--verano-blue);
+  color: white;
+}
+
+.search-history-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--verano-black);
+  font-size: 1rem;
+  line-height: 1rem;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.search-history-item:hover .search-history-remove,
+.search-history-item:focus-within .search-history-remove {
+  opacity: 1;
+}
+
+.search-history-remove:hover {
+  background: var(--verano-red);
+  color: white;
 }
 
 #gallery {
