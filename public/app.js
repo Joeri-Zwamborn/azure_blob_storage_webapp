@@ -73,12 +73,6 @@ clearHistoryButton.addEventListener("click", () => {
   renderSearchHistory();
 });
 
-const CountElement = document.querySelector("#photo-count");
-
-const response = await fetch("/api/admin/photo-count");
-const { photoCount } = await response.json();
-CountElement.textContent = photoCount.toLocaleString();
-
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
