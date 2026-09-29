@@ -105,6 +105,29 @@ main {
   background: var(--verano-grey);
 }
 
+.search-history {
+  margin-top: 0.5rem;
+  padding: 1.5rem;
+  background: var(--verano-grey);
+}
+
+.search-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+#clear-search-history {
+  padding: 0.5rem 1rem;
+  border: 0;
+  background: var(--verano-darkblue);
+  color: red;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 button {
   padding: 0.9rem 1.5rem;
   border: 0;

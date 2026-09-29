@@ -5,6 +5,7 @@ const gallery = document.querySelector("#gallery");
 const historyContainer = document.querySelector("#search-history");
 const searchHistoryKey = "production-photo-search-history";
 const searchHistorySection = document.querySelector("#search-history-section");
+const clearHistoryButton = document.querySelector("#clear-history");
 
 function getSearchHistory() {
   return JSON.parse(localStorage.getItem(searchHistoryKey) ?? "[]");
@@ -43,6 +44,11 @@ function renderSearchHistory() {
     historyContainer.append(button);
   }
 }
+
+clearHistoryButton.addEventListener("click", () => {
+  localStorage.removeItem(searchHistoryKey);
+  renderSearchHistory();
+});
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
