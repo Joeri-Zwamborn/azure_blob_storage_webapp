@@ -1,18 +1,239 @@
 import express from "express";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { ConfidentialClientApplication } from "@azure/msal-node";
 import dotenv from "dotenv";
+import session from "express-session";
+import crypto from "node:crypto";
 
 dotenv.config();
 
 const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
 const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME;
+const tenantId = process.env.ENTRA_TENANT_ID;
+const clientId = process.env.ENTRA_CLIENT_ID;
+const clientSecret = process.env.ENTRA_CLIENT_SECRET;
+const redirectUri = process.env.ENTRA_REDIRECT_URI;
+const sessionSecret = process.env.SESSION_SECRET;
+const authMode = process.env.AUTH_MODE ?? "local";
+const localAdminPassword = process.env.ADMIN_PASSWORD;
+const allowedObjectIds = new Set(
+  (process.env.ENTRA_ALLOWED_OBJECT_IDS ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean),
+);
 const app = express();
 
-if (!connectionString || !containerName) {
-    console.error("Environment variables for Azure Storage are not set.");
-    process.exit(1);
+if (!connectionString || !containerName || !sessionSecret) {
+  throw new Error("Required Azure Storage or session settings are missing.");
 }
-app.use(express.static("public"));
+
+if (authMode !== "local" && authMode !== "entra") {
+  throw new Error("AUTH_MODE must be either 'local' or 'entra'.");
+}
+
+if (authMode === "local" && !localAdminPassword) {
+  throw new Error("ADMIN_PASSWORD must be set when AUTH_MODE is 'local'.");
+}
+
+if (
+  authMode === "entra" &&
+  (!tenantId || !clientId || !clientSecret || !redirectUri || allowedObjectIds.size === 0)
+) {
+  throw new Error("Required Microsoft Entra settings are missing.");
+}
+
+declare module "express-session" {
+  interface SessionData {
+    authState?: string;
+    user?: {
+      objectId: string;
+      name?: string;
+      username?: string;
+    };
+  }
+}
+
+const msalClient =
+  authMode === "entra"
+    ? new ConfidentialClientApplication({
+        auth: {
+          clientId: clientId!,
+          clientSecret: clientSecret!,
+          authority: `https://login.microsoftonline.com/${tenantId!}`,
+        },
+      })
+    : undefined;
+
+app.use(
+  session({
+    name: "production-photos-session",
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    },
+  }),
+);
+app.use(express.urlencoded({ extended: false }));
+
+const authScopes = ["openid", "profile", "email"];
+
+function saveSession(request: express.Request): Promise<void> {
+  return new Promise((resolve, reject) => {
+    request.session.save((error) => (error ? reject(error) : resolve()));
+  });
+}
+
+function requireAdmin(
+  request: express.Request,
+  response: express.Response,
+  next: express.NextFunction,
+) {
+  if (!request.session.user) {
+    response.redirect(authMode === "local" ? "/admin/login" : "/auth/signin");
+    return;
+  }
+
+  if (
+    authMode === "entra" &&
+    !allowedObjectIds.has(request.session.user.objectId)
+  ) {
+    response.status(403).send("Access denied.");
+    return;
+  }
+
+  next();
+}
+
+app.get("/auth/signin", async (request, response, next) => {
+  if (authMode === "local") {
+    response.redirect("/admin/login");
+    return;
+  }
+
+  try {
+    const state = crypto.randomUUID();
+    request.session.authState = state;
+    await saveSession(request);
+
+    const signInUrl = await msalClient!.getAuthCodeUrl({
+      scopes: authScopes,
+      redirectUri: redirectUri!,
+      state,
+    });
+
+    response.redirect(signInUrl);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/auth/callback", async (request, response, next) => {
+  if (authMode !== "entra") {
+    response.sendStatus(404);
+    return;
+  }
+
+  try {
+    const code = typeof request.query.code === "string" ? request.query.code : undefined;
+    const state = typeof request.query.state === "string" ? request.query.state : undefined;
+
+    if (!code || !state || state !== request.session.authState) {
+      response.status(400).send("Invalid sign-in response.");
+      return;
+    }
+
+    const tokenResponse = await msalClient!.acquireTokenByCode({
+      code,
+      scopes: authScopes,
+      redirectUri: redirectUri!,
+    });
+    const claims = tokenResponse.idTokenClaims as { oid?: unknown } | undefined;
+    const objectId = claims?.oid;
+
+    if (typeof objectId !== "string" || !allowedObjectIds.has(objectId)) {
+      response.status(403).send("Your account is not authorised to access the admin page.");
+      return;
+    }
+
+    request.session.user = {
+      objectId,
+      name: tokenResponse.account?.name,
+      username: tokenResponse.account?.username,
+    };
+    delete request.session.authState;
+    await saveSession(request);
+    response.redirect("/admin");
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/auth/signout", (request, response, next) => {
+  request.session.destroy((error) => {
+    if (error) {
+      next(error);
+      return;
+    }
+
+    if (authMode === "local") {
+      response.redirect("/");
+      return;
+    }
+
+    const homeUrl = new URL(redirectUri!).origin;
+    const signOutUrl = new URL(
+      `https://login.microsoftonline.com/${tenantId!}/oauth2/v2.0/logout`,
+    );
+    signOutUrl.searchParams.set("post_logout_redirect_uri", homeUrl);
+    response.redirect(signOutUrl.toString());
+  });
+});
+
+function passwordsMatch(suppliedPassword: string, configuredPassword: string) {
+  const supplied = Buffer.from(suppliedPassword);
+  const configured = Buffer.from(configuredPassword);
+
+  return (
+    supplied.length === configured.length &&
+    crypto.timingSafeEqual(supplied, configured)
+  );
+}
+
+app.get("/admin/login", (request, response) => {
+  if (authMode !== "local") {
+    response.redirect("/auth/signin");
+    return;
+  }
+
+  response.sendFile("admin-login.html", { root: "public" });
+});
+
+app.post("/auth/local-login", async (request, response, next) => {
+  if (authMode !== "local") {
+    response.sendStatus(404);
+    return;
+  }
+
+  const password = typeof request.body.password === "string" ? request.body.password : "";
+
+  if (!passwordsMatch(password, localAdminPassword!)) {
+    response.status(401).send("Incorrect password.");
+    return;
+  }
+
+  try {
+    request.session.user = { objectId: "local-admin" };
+    await saveSession(request);
+    response.redirect("/admin");
+  } catch (error) {
+    next(error);
+  }
+});
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
 const containerClient = blobServiceClient.getContainerClient(containerName);
@@ -54,9 +275,15 @@ app.get("/api/images/*blobPath", async (request, response, next) => {
   }
 });
 
-app.get("/admin", (request, response) => {
-    response.sendFile("admin.html", { root: "public" });
+app.get("/admin", requireAdmin, (request, response) => {
+  response.sendFile("admin.html", { root: "public" });
 });
+
+app.get("/admin.html", requireAdmin, (request, response) => {
+  response.sendFile("admin.html", { root: "public" });
+});
+
+app.use(express.static("public"));
 
 app.listen(3000, () => {
     console.log("Server is running on port 3000");

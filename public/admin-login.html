@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/styles.css">
+    <title>Admin sign-in — Production Photos</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a href="/" class="logo-link" aria-label="Go to homepage">
+        <img class="company-logo" src="/images/verano.svg" alt="Verano logo">
+      </a>
+      <div class="header-text">
+        <p class="header-title">Production Photos Archive</p>
+      </div>
+    </header>
+    <main>
+      <h1>Admin sign-in</h1>
+      <form action="/auth/local-login" method="post" class="admin-login-form">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+        <button type="submit">Sign in</button>
+      </form>
+    </main>
+    <footer class="site-footer">
+      <p>© 2026 Verano — For internal use only</p>
+    </footer>
+  </body>
+</html>
