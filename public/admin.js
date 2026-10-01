@@ -16,6 +16,7 @@ try {
 
 const todayElement = document.querySelector("#today-activity");
 const yesterdayElement = document.querySelector("#yesterday-activity");
+const weekElement = document.querySelector("#week-activity");
 
 try {
   const response = await fetch("/api/admin/today-activity");
@@ -44,11 +45,21 @@ try {
   previousDay.setUTCDate(previousDay.getUTCDate() - 1);
   const yesterday = previousDay.toISOString().slice(0, 10);
 
+  const monday = new Date(`${today}T12:00:00Z`);
+  const daysSinceMonday = (monday.getUTCDay() + 6) % 7;
+  monday.setUTCDate(monday.getUTCDate() - daysSinceMonday);
+  const weekStart = monday.toISOString().slice(0, 10);
+  const weekCount = Object.entries(activity)
+    .filter(([date]) => date >= weekStart && date <= today)
+    .reduce((total, [, count]) => total + count, 0);
+
   todayElement.textContent = (activity[today] ?? 0).toLocaleString();
   yesterdayElement.textContent =
     (activity[yesterday] ?? 0).toLocaleString();
+  weekElement.textContent = weekCount.toLocaleString();
 } catch (error) {
   console.error(error);
   todayElement.textContent = "Unavailable";
   yesterdayElement.textContent = "Unavailable";
+  weekElement.textContent = "Unavailable";
 }
