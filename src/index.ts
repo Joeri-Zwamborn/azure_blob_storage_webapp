@@ -283,6 +283,21 @@ app.get("/admin.html", requireAdmin, (request, response) => {
   response.sendFile("admin.html", { root: "public" });
 });
 
+app.get("/api/admin/daily-activity", requireAdmin, async (request, response, next) => {
+  try {
+    const dailyActivity: Record<string, number> = {};
+    for await (const blob of containerClient.listBlobsFlat()) {
+      if (blob.name.toLowerCase().endsWith(".png") && blob.properties.lastModified) {
+        const dateKey = blob.name.split("_")[1].replace('-','');
+        dailyActivity[dateKey] = (dailyActivity[dateKey] || 0) + 1;
+      }
+    }
+    response.json(dailyActivity);
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/api/admin/photo-count", requireAdmin, async (request, response, next) => {
   try {
     let count = 0;
