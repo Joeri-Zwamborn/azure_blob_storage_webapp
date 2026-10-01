@@ -283,9 +283,9 @@ app.get("/admin.html", requireAdmin, (request, response) => {
   response.sendFile("admin.html", { root: "public" });
 });
 
-app.get("/api/admin/daily-activity", requireAdmin, async (request, response, next) => {
+app.get("/api/admin/today-activity", requireAdmin, async (request, response, next) => {
   try {
-    const dailyActivity: Record<string, number> = {};
+    const todayactivity: Record<string, number> = {};
     for await (const blob of containerClient.listBlobsFlat()) {
       if (blob.name.toLowerCase().endsWith(".png") && blob.properties.lastModified) {
         const match = blob.name.match(
@@ -294,11 +294,11 @@ app.get("/api/admin/daily-activity", requireAdmin, async (request, response, nex
 
         if (match) {
           const dateKey = match[1];
-          dailyActivity[dateKey] = (dailyActivity[dateKey] || 0) + 1;
+          todayactivity[dateKey] = (todayactivity[dateKey] || 0) + 1;
         }
       }
     }
-    response.json(dailyActivity);
+    response.json(todayactivity);
   } catch (error) {
     next(error);
   }

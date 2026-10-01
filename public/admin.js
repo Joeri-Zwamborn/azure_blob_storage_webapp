@@ -14,46 +14,41 @@ try {
   countElement.textContent = "Unavailable";
 }
 
-const dailyActivityElement = document.querySelector("#daily-activity");
+const todayElement = document.querySelector("#today-activity");
+const yesterdayElement = document.querySelector("#yesterday-activity");
 
 try {
-  const response = await fetch("/api/admin/daily-activity");
+  const response = await fetch("/api/admin/today-activity");
 
   if (!response.ok) {
     throw new Error(`Dashboard service returned ${response.status}`);
   }
 
-  const dailyActivity = await response.json();
-  const dailyActivityElement = document.querySelector("#daily-activity");
+  const activity = await response.json();
 
-  try {
-    const response = await fetch("/api/admin/daily-activity");
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Amsterdam",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
 
-    if (!response.ok) {
-      throw new Error(`Dashboard service returned ${response.status}`);
-    }
+  const getPart = (type) =>
+    parts.find((part) => part.type === type).value;
 
-    const dailyActivity = await response.json();
+  const today =
+    `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
 
-    const parts = new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Europe/Amsterdam",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).formatToParts(new Date());
+  // Subtract one calendar day, including across month/year boundaries.
+  const previousDay = new Date(`${today}T12:00:00Z`);
+  previousDay.setUTCDate(previousDay.getUTCDate() - 1);
+  const yesterday = previousDay.toISOString().slice(0, 10);
 
-    const getPart = (type) =>
-      parts.find((part) => part.type === type).value;
-
-    const today = `${getPart("year")}-${getPart("month")}-${getPart("day")}`;
-
-    dailyActivityElement.textContent =
-      (dailyActivity[today] ?? 0).toLocaleString();
-  } catch (error) {
-    console.error(error);
-    dailyActivityElement.textContent = "Unavailable";
-  }
+  todayElement.textContent = (activity[today] ?? 0).toLocaleString();
+  yesterdayElement.textContent =
+    (activity[yesterday] ?? 0).toLocaleString();
 } catch (error) {
   console.error(error);
-  dailyActivityElement.textContent = "Unavailable";
+  todayElement.textContent = "Unavailable";
+  yesterdayElement.textContent = "Unavailable";
 }
