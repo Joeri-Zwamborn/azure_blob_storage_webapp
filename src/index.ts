@@ -288,8 +288,14 @@ app.get("/api/admin/daily-activity", requireAdmin, async (request, response, nex
     const dailyActivity: Record<string, number> = {};
     for await (const blob of containerClient.listBlobsFlat()) {
       if (blob.name.toLowerCase().endsWith(".png") && blob.properties.lastModified) {
-        const dateKey = blob.name.split("_")[1].replace('-','');
-        dailyActivity[dateKey] = (dailyActivity[dateKey] || 0) + 1;
+        const match = blob.name.match(
+         /_(\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2}(?:\.\d+)?\.png$/i,
+        );
+
+        if (match) {
+          const dateKey = match[1];
+          dailyActivity[dateKey] = (dailyActivity[dateKey] || 0) + 1;
+        }
       }
     }
     response.json(dailyActivity);
