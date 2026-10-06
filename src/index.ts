@@ -253,7 +253,7 @@ app.post("/auth/local-login", async (request, response, next) => {
 const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
 const containerClient = blobServiceClient.getContainerClient(containerName);
 
-app.get("/api/blobs", requireAdmin, async (request, response, next) => {
+app.get("/api/blobs", async (request, response, next) => {
     try {
         const blobs = [];
         for await (const blob of containerClient.listBlobsFlat()) {
@@ -271,7 +271,7 @@ app.get("/api/blobs", requireAdmin, async (request, response, next) => {
     }
 });
 
-app.get("/api/images/*blobPath", requireAdmin, async (request, response, next) => {
+app.get("/api/images/*blobPath", async (request, response, next) => {
   try {
     const blobPath = request.params.blobPath;
     const blobName = Array.isArray(blobPath) ? blobPath.join("/") : blobPath;
