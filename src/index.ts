@@ -4,6 +4,7 @@ import { ConfidentialClientApplication } from "@azure/msal-node";
 import dotenv from "dotenv";
 import session from "express-session";
 import crypto from "node:crypto";
+import { configureSessions, sessionCookieName } from "./session-config.js";
 
 dotenv.config();
 
@@ -65,19 +66,18 @@ const msalClient =
       })
     : undefined;
 
-app.use(
-  session({
-    name: "production-photos-session",
-    secret: sessionSecret,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    },
-  }),
-);
+if (process.env.NODE_ENV === "production" && authMode === "entra" && new URL(redirectUri!).protocol !== "https:") {
+  throw new Error("ENTRA_REDIRECT_URI must use HTTPS in production.");
+}
+
+app.use(session(configureSessions(app, process.env)));
+app.use("/auth", (request, response, next) => {
+  if (process.env.NODE_ENV === "production" && !request.secure) {
+    response.status(400).send("Sign-in requires HTTPS. Check the reverse proxy configuration.");
+    return;
+  }
+  next();
+});
 app.use(express.urlencoded({ extended: false }));
 
 const authScopes = ["openid", "profile", "email"];
@@ -85,6 +85,12 @@ const authScopes = ["openid", "profile", "email"];
 function saveSession(request: express.Request): Promise<void> {
   return new Promise((resolve, reject) => {
     request.session.save((error) => (error ? reject(error) : resolve()));
+  });
+}
+
+function regenerateSession(request: express.Request): Promise<void> {
+  return new Promise((resolve, reject) => {
+    request.session.regenerate((error) => (error ? reject(error) : resolve()));
   });
 }
 
@@ -160,6 +166,7 @@ app.get("/auth/callback", async (request, response, next) => {
       return;
     }
 
+    await regenerateSession(request);
     request.session.user = {
       objectId,
       name: tokenResponse.account?.name,
@@ -179,6 +186,13 @@ app.get("/auth/signout", (request, response, next) => {
       next(error);
       return;
     }
+
+    response.clearCookie(sessionCookieName, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    });
 
     if (authMode === "local") {
       response.redirect("/");
@@ -227,6 +241,7 @@ app.post("/auth/local-login", async (request, response, next) => {
   }
 
   try {
+    await regenerateSession(request);
     request.session.user = { objectId: "local-admin" };
     await saveSession(request);
     response.redirect("/admin");
@@ -258,7 +273,8 @@ app.get("/api/blobs", requireAdmin, async (request, response, next) => {
 
 app.get("/api/images/*blobPath", requireAdmin, async (request, response, next) => {
   try {
-    const blobName = request.params.blobPath.join("/");
+    const blobPath = request.params.blobPath;
+    const blobName = Array.isArray(blobPath) ? blobPath.join("/") : blobPath;
 
     if (!blobName.toLowerCase().endsWith(".png")) {
       response.sendStatus(404);
