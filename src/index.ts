@@ -70,6 +70,10 @@ if (process.env.NODE_ENV === "production" && authMode === "entra" && new URL(red
   throw new Error("ENTRA_REDIRECT_URI must use HTTPS in production.");
 }
 
+// Process health only: this does not verify Azure access or authentication.
+app.get("/healthz", (_request, response) => {
+  response.status(200).json({ status: "ok" });
+});
 app.use(session(configureSessions(app, process.env)));
 app.use("/auth", (request, response, next) => {
   if (process.env.NODE_ENV === "production" && !request.secure) {
@@ -335,6 +339,14 @@ app.get("/api/admin/photo-count", requireAdmin, async (request, response, next) 
 });
 app.use(express.static("public"));
 
-app.listen(3000, () => {
+const server = app.listen(3000, () => {
     console.log("Server is running on port 3000");
 });
+
+function shutdown() {
+  console.log("Shutting down HTTP server");
+  server.close((error) => process.exit(error ? 1 : 0));
+  setTimeout(() => process.exit(1), 10_000).unref();
+}
+process.once("SIGTERM", shutdown);
+process.once("SIGINT", shutdown);

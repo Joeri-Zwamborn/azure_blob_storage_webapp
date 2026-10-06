@@ -1,0 +1,26 @@
+services:
+  web:
+    build: .
+    image: production-photos:local
+    restart: unless-stopped
+    init: true
+    env_file:
+      - path: .env.docker
+        format: raw
+    environment:
+      NODE_ENV: production
+    ports:
+      - "127.0.0.1:${HOST_PORT:-3000}:3000"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

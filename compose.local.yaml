@@ -1,0 +1,7 @@
+# HTTP testing on this machine only; never use this override for deployment.
+services:
+  web:
+    environment:
+      NODE_ENV: development
+      AUTH_MODE: local
+      TRUST_PROXY: "false"

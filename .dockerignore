@@ -1,0 +1,14 @@
+.git
+node_modules
+dist
+.env
+.env.*
+tests
+*.log
+*.md
+.vscode
+.idea
+*.pem
+*.key
+*.pfx
+*.crt
