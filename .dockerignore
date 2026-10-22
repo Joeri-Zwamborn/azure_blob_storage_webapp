@@ -12,3 +12,5 @@ tests
 *.key
 *.pfx
 *.crt
+data
+sessions

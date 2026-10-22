@@ -9,6 +9,9 @@ services:
         format: raw
     environment:
       NODE_ENV: production
+      SESSION_STORE_PATH: /app/data/sessions
+    volumes:
+      - session-data:/app/data
     ports:
       - "127.0.0.1:${HOST_PORT:-3000}:3000"
     read_only: true
@@ -24,3 +27,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+volumes:
+  session-data:

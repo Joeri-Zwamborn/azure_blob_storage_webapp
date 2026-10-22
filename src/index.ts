@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import session from "express-session";
 import crypto from "node:crypto";
 import { configureSessions, sessionCookieName } from "./session-config.js";
+import { createSessionStore } from "./session-store.js";
 
 dotenv.config();
 
@@ -74,7 +75,9 @@ if (process.env.NODE_ENV === "production" && authMode === "entra" && new URL(red
 app.get("/healthz", (_request, response) => {
   response.status(200).json({ status: "ok" });
 });
-app.use(session(configureSessions(app, process.env)));
+const sessionOptions = configureSessions(app, process.env);
+sessionOptions.store = createSessionStore(process.env);
+app.use(session(sessionOptions));
 app.use("/auth", (request, response, next) => {
   if (process.env.NODE_ENV === "production" && !request.secure) {
     response.status(400).send("Sign-in requires HTTPS. Check the reverse proxy configuration.");

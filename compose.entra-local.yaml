@@ -1,0 +1,8 @@
+# Entra sign-in on localhost only. Production must use HTTPS.
+services:
+  web:
+    environment:
+      NODE_ENV: production
+      AUTH_MODE: entra
+      TRUST_PROXY: "false"
+      ENTRA_REDIRECT_URI: http://localhost:3000/auth/callback

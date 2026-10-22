@@ -2,6 +2,6 @@
 services:
   web:
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       AUTH_MODE: local
       TRUST_PROXY: "false"

@@ -56,13 +56,61 @@ production, run `docker compose up -d --force-recreate` without the override.
 
 For updates, run `docker compose up -d --build`. To stop the app, run
 `docker compose down`. Azure photos remain in Azure; the container stores no
-photos locally. Admin sessions currently live in memory and are lost when the
-app restarts; production session storage remains a separate launch task.
+photos locally. Admin sessions persist in the `session-data` Docker volume.
+Keep that volume and the same `SESSION_SECRET` when updating or recreating the
+container. `docker compose down` keeps the volume; `down -v` deletes it and
+invalidates all sessions.
 
 Never share the output of `docker compose config` or `docker inspect`: they can
 contain credentials. Use `docker compose config --quiet` for validation.
 
 ## HTTPS and admin sessions
+
+### Test Entra admin sign-in locally
+
+The Entra sign-in flow is already implemented. The `compose.local.yaml` override
+forces password login; use `compose.entra-local.yaml` instead to test Entra.
+
+In the Microsoft Entra admin center:
+
+1. Open **App registrations** and create (or select) this web app's registration.
+   For a new registration, choose accounts in your organizational directory only.
+2. Under **Authentication**, add a **Web** redirect URI:
+   `http://localhost:3000/auth/callback`. Do not choose Single-page application.
+3. From **Overview**, copy the Directory (tenant) ID and Application (client) ID.
+4. Under **Certificates & secrets**, create a client secret. Copy its **Value**,
+   not its Secret ID, directly into your private `.env.docker` file.
+5. Under **Users**, open your own user's profile and copy its **Object ID**.
+   This must be your user's ID, not the app registration or enterprise app ID.
+
+Set these values in `.env.docker`:
+
+```dotenv
+AUTH_MODE=entra
+ENTRA_TENANT_ID=YOUR_DIRECTORY_TENANT_ID
+ENTRA_CLIENT_ID=YOUR_APPLICATION_CLIENT_ID
+ENTRA_CLIENT_SECRET=YOUR_CLIENT_SECRET_VALUE
+ENTRA_ALLOWED_OBJECT_IDS=YOUR_USER_OBJECT_ID
+```
+
+Keep the existing Azure Storage settings and session secret. Do not paste secrets
+into chat. Your organization may require an administrator to approve the app.
+
+Run:
+
+```sh
+docker compose -f compose.yaml -f compose.entra-local.yaml up -d --build
+```
+
+Open `http://localhost:3000/admin`. You should be redirected to Microsoft sign-in
+and returned to the dashboard. Only your allowed user ID can access it; other
+accounts receive Access denied. The local password endpoint is disabled in this
+mode. Photo viewing does not require admin login.
+
+Use `localhost`, not `127.0.0.1`, in the browser so the callback receives the
+same session cookie. Test sign-out and refreshing `/admin` after sign-out.
+This override enables HTTP solely for localhost testing. Deploy using the base
+Compose file and register the eventual HTTPS callback separately.
 
 Set `NODE_ENV=production` in the deployed app. Session cookies then require HTTPS,
 are inaccessible to browser JavaScript, use `SameSite=Lax` for the Entra GET
@@ -99,6 +147,34 @@ developer tools, confirm `production-photos-session` has Secure, HttpOnly,
 SameSite=Lax, Path=/, and an expiry. Refresh `/admin` to confirm the session works;
 sign out and confirm the cookie is removed. Do not share cookie values or secrets.
 
-The app still uses the default in-memory session store. Configure a production
-session store separately before launch; otherwise restarts lose sessions and
-multiple instances cannot share them.
+## Persistent admin sessions
+
+The app uses `session-file-store` with authenticated AES-256-GCM encryption,
+using a key derived from `SESSION_SECRET`. No Redis or Docker is needed to run
+locally. On Windows the default folder is
+`%LOCALAPPDATA%\production-photos\sessions`; otherwise it is
+`~/.local/share/production-photos/sessions`. This keeps session files outside the
+OneDrive checkout. Set `SESSION_STORE_PATH` to override the folder, using a private
+local directory outside the repository and outside `public/`. Restrict access to
+the account running the app (Windows uses the directory's inherited ACLs).
+
+Sessions survive app restarts if the storage folder and `SESSION_SECRET` stay
+unchanged. Existing memory sessions require one fresh sign-in after this update.
+Changing the secret invalidates existing cookies and encrypted session records.
+Sessions expire after eight hours of inactivity in the store; the browser cookie
+also expires, and expired files are cleaned up every fifteen minutes. Signing
+out destroys the saved session as well as clearing the browser cookie.
+
+For Docker, Compose mounts the named `session-data` volume at `/app/data` and
+sets `SESSION_STORE_PATH=/app/data/sessions`. The rest of the container stays
+read-only. Do not delete the volume during ordinary updates.
+
+This configuration is for **one Node process / one container on one server**.
+Do not share the files over OneDrive, SMB, NFS, or between multiple app replicas;
+use a shared database or Redis session store if you scale out. Store access errors
+fail requests/startup rather than falling back to in-memory sessions.
+
+To verify locally, sign in, stop the app, restart with `npm start`, and refresh
+`/admin` in the same browser. You should remain signed in. Then sign out and
+confirm `/admin` requires a new sign-in. Verify Docker recreation the same way
+once Docker hosting is available. Keep the session secret private and stable.
