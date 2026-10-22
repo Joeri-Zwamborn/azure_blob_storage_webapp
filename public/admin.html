@@ -31,14 +31,25 @@
             <h2>Camera Scanners</h2>
             <p>Manage camera scanners and their associated photos.</p>
         </section>
-        <section id="admin-actions">
-            <h2>Admin Actions</h2>
-            <p>Perform administrative tasks on the production photos.</p>
+        <section id="admin-actions" aria-labelledby="manage-images-title">
+            <h2 id="manage-images-title">Manage photos</h2>
+            <p>Search for a photo to rename, replace, or delete it. Changes also appear in the production archive.</p>
+            <form id="admin-image-search" class="admin-image-search">
+                <label for="admin-image-query">Barcode or filename</label>
+                <input id="admin-image-query" type="search" maxlength="256" placeholder="Search photos" autocomplete="off">
+                <button type="submit">Search</button>
+            </form>
+            <p id="admin-image-status" role="status" aria-live="polite"></p>
+            <p id="admin-image-error" role="alert" hidden></p>
+            <div id="admin-image-gallery" class="admin-image-gallery"></div>
+            <button id="admin-image-more" type="button" hidden>Load more photos</button>
+            <p><a href="/auth/signout">Sign out</a></p>
         </section>
     </main>
     <footer class="site-footer">
         <p>© 2026 Verano - For internal use only - Website by Joeri Zwamborn</p>
     </footer>
     <script type="module" src="/admin.js"></script>
+    <script type="module" src="/admin-images.js"></script>
 </body>
 </html>

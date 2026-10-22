@@ -147,6 +147,34 @@ developer tools, confirm `production-photos-session` has Secure, HttpOnly,
 SameSite=Lax, Path=/, and an expiry. Refresh `/admin` to confirm the session works;
 sign out and confirm the cookie is removed. Do not share cookie values or secrets.
 
+## Admin photo management
+
+Open `/admin` and use **Manage photos** to search by barcode or filename. You can
+rename an image within its existing folder, upload a replacement PNG, or delete
+an image after confirmation. Public viewers cannot use these write operations.
+Dashboard counts refresh after a successful change.
+
+Replacements must be non-animated PNGs of at most 20 MB and 25 megapixels. The
+server decodes and re-encodes them before uploading. Rename preserves the original
+bytes and metadata, refuses an existing destination, and removes the source only
+after the copy succeeds. If removing the source fails, both copies are kept and
+the page tells you to reload. Keep the date/time suffix when renaming if dashboard
+capture-date statistics should remain accurate.
+
+Writes require admin authorization, a session-bound anti-forgery token, and the
+image's current Azure ETag. If another process changed the image, reload rather
+than overwriting it. Production writes require HTTPS. Changes are recorded in the
+server log with the admin's object ID and affected image name.
+
+The web app's Azure credential needs read, list, write, and delete access to the
+photo container. This page has no undo; configure Azure Blob soft delete/versioning
+with your retention policy if recovery is required. No Azure recovery settings
+are changed by this app. Edits and deletions affect the production archive.
+
+The management list loads in batches. If a search has not reached the end of the
+container, **Load more photos** continues searching. No live Azure data is changed
+by the automated tests; they use a fake storage client.
+
 ## Persistent admin sessions
 
 The app uses `session-file-store` with authenticated AES-256-GCM encryption,

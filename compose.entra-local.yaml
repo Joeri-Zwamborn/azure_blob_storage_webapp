@@ -2,7 +2,7 @@
 services:
   web:
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       AUTH_MODE: entra
       TRUST_PROXY: "false"
       ENTRA_REDIRECT_URI: http://localhost:3000/auth/callback

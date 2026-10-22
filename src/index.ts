@@ -6,6 +6,7 @@ import session from "express-session";
 import crypto from "node:crypto";
 import { configureSessions, sessionCookieName } from "./session-config.js";
 import { createSessionStore } from "./session-store.js";
+import { adminImages } from "./admin-images.js";
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ if (
 declare module "express-session" {
   interface SessionData {
     authState?: string;
+    csrfToken?: string;
     user?: {
       objectId: string;
       name?: string;
@@ -107,6 +109,10 @@ function requireAdmin(
   next: express.NextFunction,
 ) {
   if (!request.session.user) {
+    if (request.originalUrl.startsWith("/api/admin/")) {
+      response.status(401).json({ error: "Sign in again to manage images." });
+      return;
+    }
     response.redirect(authMode === "local" ? "/admin/login" : "/auth/signin");
     return;
   }
@@ -259,6 +265,7 @@ app.post("/auth/local-login", async (request, response, next) => {
 
 const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
 const containerClient = blobServiceClient.getContainerClient(containerName);
+app.use("/api/admin/images", adminImages(containerClient, requireAdmin));
 
 app.get("/api/blobs", async (request, response, next) => {
     try {
@@ -292,6 +299,7 @@ app.get("/api/images/*blobPath", async (request, response, next) => {
     const downloadResponse = await blockBlobClient.download(0);
 
     response.setHeader("Content-Type", "image/png");
+    response.setHeader("Cache-Control", "no-cache");
     downloadResponse.readableStreamBody?.pipe(response);
   } catch (error) {
     next(error);

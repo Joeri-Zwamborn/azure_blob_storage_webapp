@@ -1,3 +1,4 @@
+async function refreshDashboard() {
 const countElement = document.querySelector("#photo-count");
 
 try {
@@ -63,3 +64,7 @@ try {
   yesterdayElement.textContent = "Unavailable";
   weekElement.textContent = "Unavailable";
 }
+}
+
+window.addEventListener("photos-changed", refreshDashboard);
+refreshDashboard();
