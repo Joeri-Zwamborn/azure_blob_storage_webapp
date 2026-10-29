@@ -1,3 +1,5 @@
+import { photoPreviewButton } from "/photo-preview.js";
+
 const search = document.querySelector("#admin-image-search");
 const queryInput = document.querySelector("#admin-image-query");
 const gallery = document.querySelector("#admin-image-gallery");
@@ -74,7 +76,7 @@ function card(photo) {
   hint.className = "admin-image-hint";
   hint.textContent = "Keep the capture date at the end of the filename so dashboard activity remains accurate.";
   content.append(heading, renameLabel, rename, hint, replaceLabel, replace, remove);
-  article.append(image, content);
+  article.append(photoPreviewButton(image, photo.name), content);
   const url = () => `/api/admin/images?name=${encodeURIComponent(photo.name)}`;
   const headers = () => ({ "X-CSRF-Token": csrfToken, "If-Match": photo.etag });
 

@@ -25,14 +25,16 @@
         <input id="search" name="search" type="search" autofocus>
         <button id="search-button" type="submit">Search</button>
       </form>
-      <section id="search-history-section" class="search-history" hidden>
+      <section id="search-history-section" class="search-history">
         <div class="search-history-header">
           <h2>Recent searches:</h2>
-          <div id="search-history"></div>
+          <div id="search-history">
+            <button id="today-button" class="search-history-term" type="submit" form="search-form" aria-pressed="false">Today</button>
+          </div>
           <button id="clear-history" aria-label="Clear search history">Clear</button>
         </div>
       </section>
-      <p id="message"></p>
+      <p id="message" role="status" aria-live="polite"></p>
       <div id="gallery"></div>
     </main>
     <footer class="site-footer">

@@ -1,4 +1,9 @@
+import { amsterdamDate, wasTakenOn } from "/photo-dates.js";
+import { photoPreviewButton } from "/photo-preview.js";
+
 const form = document.querySelector("#search-form");
+const todayButton = document.querySelector("#today-button");
+let latestSearch = 0;
 const searchInput = document.querySelector("#search");
 const message = document.querySelector("#message");
 const gallery = document.querySelector("#gallery");
@@ -26,9 +31,10 @@ function saveSearch(searchTerm) {
 function renderSearchHistory() {
   const history = getSearchHistory();
 
-  searchHistorySection.hidden = !history.length;
+  searchHistorySection.hidden = false;
+  clearHistoryButton.disabled = !history.length;
 
-  historyContainer.replaceChildren();
+  historyContainer.replaceChildren(todayButton);
 
   for (const searchTerm of history) {
     const item = document.createElement("div");
@@ -76,6 +82,11 @@ clearHistoryButton.addEventListener("click", () => {
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  const requestId = ++latestSearch;
+  const todayOnly = event.submitter === todayButton;
+  const today = todayOnly ? amsterdamDate() : null;
+  todayButton.setAttribute("aria-pressed", String(todayOnly));
+  if (todayOnly) searchInput.value = "";
   const searchTerm = searchInput.value.trim().toLowerCase();
 
   gallery.replaceChildren();
@@ -84,7 +95,7 @@ form.addEventListener("submit", async (event) => {
     saveSearch(searchTerm);
     renderSearchHistory();
   }
-  message.textContent = searchTerm
+  message.textContent = todayOnly ? "Loading today's photos…" : searchTerm
     ? `Searching for "${searchTerm}"...`
     : "Loading all images...";
 
@@ -96,17 +107,18 @@ form.addEventListener("submit", async (event) => {
     }
 
     const blobs = await response.json();
+    if (requestId !== latestSearch) return;
 
-    const matches = searchTerm
+    const matches = todayOnly ? blobs.filter(blob => wasTakenOn(blob.name, today)) : searchTerm
       ? blobs.filter((blob) => blob.name.toLowerCase().includes(searchTerm),)
       : blobs;
 
   if (matches.length === 0) {
-    message.textContent = "No matching images found.";
+    message.textContent = todayOnly ? "No photos taken today yet." : "No matching images found.";
     return;
   }
 
-  message.textContent = `${matches.length} image(s) found.`;
+  message.textContent = todayOnly ? `${matches.length} photo(s) taken today.` : `${matches.length} image(s) found.`;
 
   for (const blob of matches) {
     const figure = document.createElement("figure");
@@ -124,11 +136,12 @@ form.addEventListener("submit", async (event) => {
 
     caption.textContent = blob.name.replace(/^production\//i, "");
 
-    figure.append(image, caption);
+    figure.append(photoPreviewButton(image, blob.name), caption);
     gallery.append(figure);
   }
 
   } catch (error) {
+    if (requestId !== latestSearch) return;
     console.error(error);
     message.textContent =
       "Unable to search Azure Storage. Check your network or VPN connection.";

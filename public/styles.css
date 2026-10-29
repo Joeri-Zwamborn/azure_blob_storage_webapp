@@ -13,7 +13,7 @@
 .admin-image-search input, .admin-image-details input { padding: 0.65rem; border: 1px solid var(--verano-border); font: inherit; }
 .admin-image-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 1.5rem; margin: 1.5rem 0; }
 .admin-image-card { background: white; border: 1px solid var(--verano-border); overflow: hidden; }
-.admin-image-card > img { display: block; width: 100%; height: 230px; object-fit: contain; background: #e9e9e7; }
+.admin-image-card > .photo-preview-trigger img { display: block; width: 100%; height: 230px; object-fit: contain; background: #e9e9e7; }
 .admin-image-details { display: grid; gap: 0.75rem; padding: 1rem; }
 .admin-image-details h3 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
 .admin-image-details label { display: grid; gap: 0.35rem; }
@@ -22,6 +22,16 @@
 .danger-button { background: var(--verano-red); }
 button:disabled { opacity: 0.6; cursor: wait; }
 #admin-image-error { padding: 1rem; border-left: 4px solid var(--verano-red); background: #fff0f0; }
+
+.photo-preview-trigger { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+.photo-preview-trigger:focus-visible { outline: 3px solid var(--verano-yellow); outline-offset: 3px; }
+.photo-preview-open { overflow: hidden; }
+.photo-preview-dialog { width: min(96vw, 1400px); max-width: 96vw; max-height: 94vh; padding: 1rem; border: 0; border-radius: 6px; background: #171717; color: white; }
+.photo-preview-dialog::backdrop { background: rgb(0 0 0 / 80%); }
+.photo-preview-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.photo-preview-header h2 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
+.photo-preview-header button { flex-shrink: 0; }
+.photo-preview-full-image { display: block; width: 100%; height: auto; max-height: calc(94vh - 110px); object-fit: contain; }
 
 * {
   box-sizing: border-box;
@@ -188,6 +198,13 @@ button {
 
 #search-button:hover {
   background: var(--verano-yellow);
+}
+
+#today-button { background: var(--verano-blue); }
+#today-button:hover { background: var(--verano-yellow); color: white; }
+@media (max-width: 480px) {
+  #search-form { flex-wrap: wrap; }
+  #search { flex-basis: 100%; }
 }
 
 .search-history-item {
